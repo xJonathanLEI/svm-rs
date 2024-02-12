@@ -10,6 +10,7 @@ pub enum Platform {
     MacOsAmd64,
     MacOsAarch64,
     WindowsAmd64,
+    AndroidAarch64,
     Unsupported,
 }
 
@@ -21,6 +22,7 @@ impl fmt::Display for Platform {
             Platform::MacOsAmd64 => "macosx-amd64",
             Platform::MacOsAarch64 => "macosx-aarch64",
             Platform::WindowsAmd64 => "windows-amd64",
+            Platform::AndroidAarch64 => "android-aarch64",
             Platform::Unsupported => "Unsupported-platform",
         };
         f.write_str(s)
@@ -37,6 +39,7 @@ impl FromStr for Platform {
             "macosx-amd64" => Ok(Platform::MacOsAmd64),
             "macosx-aarch64" => Ok(Platform::MacOsAarch64),
             "windows-amd64" => Ok(Platform::WindowsAmd64),
+            "android-aarch64" => Ok(Platform::AndroidAarch64),
             s => Err(format!("unsupported platform {s}")),
         }
     }
@@ -54,6 +57,7 @@ pub fn platform() -> Platform {
         ("macos", "x86_64") => Platform::MacOsAmd64,
         ("macos", "aarch64") => Platform::MacOsAarch64,
         ("windows", "x86_64") => Platform::WindowsAmd64,
+        ("android", "aarch64") => Platform::AndroidAarch64,
         _ => Platform::Unsupported,
     }
 }
@@ -90,5 +94,11 @@ mod tests {
     #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
     fn get_platform() {
         assert_eq!(platform(), Platform::WindowsAmd64);
+    }
+
+    #[test]
+    #[cfg(all(target_os = "android", target_arch = "aarch64"))]
+    fn get_platform() {
+        assert_eq!(platform(), Platform::AndroidAarch64);
     }
 }

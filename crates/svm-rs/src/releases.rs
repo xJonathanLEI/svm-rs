@@ -43,6 +43,14 @@ static MACOS_AARCH64_URL_PREFIX: &str =
 static MACOS_AARCH64_RELEASES_URL: &str =
     "https://github.com/alloy-rs/solc-builds/raw/e4b80d33bc4d015b2fc3583e217fbf248b2014e1/macosx/aarch64/list.json";
 
+const ANDROID_AARCH64_MIN: Version = Version::new(0, 8, 24);
+
+static ANDROID_AARCH64_URL_PREFIX: &str =
+    "https://github.com/xJonathanLEI/solc-builds/raw/71e663cd4eb681b7deab8d0b9022934e5a929484/macosx/aarch64";
+
+static ANDROID_AARCH64_RELEASES_URL: &str =
+    "https://github.com/xJonathanLEI/solc-builds/raw/71e663cd4eb681b7deab8d0b9022934e5a929484/android/aarch64/list.json";
+
 /// Defines the struct that the JSON-formatted release list can be deserialized into.
 ///
 /// {
@@ -151,6 +159,9 @@ pub fn blocking_all_releases(platform: Platform) -> Result<Releases, SolcVmError
             releases.releases.append(&mut native.releases);
             Ok(releases)
         }
+        Platform::AndroidAarch64 => {
+            Ok(reqwest::blocking::get(ANDROID_AARCH64_RELEASES_URL)?.json::<Releases>()?)
+        }
         _ => {
             let releases =
                 reqwest::blocking::get(format!("{SOLC_RELEASES_URL}/{platform}/list.json"))?
@@ -196,6 +207,10 @@ pub async fn all_releases(platform: Platform) -> Result<Releases, SolcVmError> {
             releases.releases.append(&mut native.releases);
             Ok(releases)
         }
+        Platform::AndroidAarch64 => Ok(get(ANDROID_AARCH64_RELEASES_URL)
+            .await?
+            .json::<Releases>()
+            .await?),
         _ => {
             let releases = get(format!("{SOLC_RELEASES_URL}/{platform}/list.json"))
                 .await?
@@ -266,6 +281,19 @@ pub fn artifact_url(
                 Platform::MacOsAmd64,
                 artifact,
             ))?);
+        }
+    }
+
+    if platform == Platform::AndroidAarch64 {
+        if version.ge(&ANDROID_AARCH64_MIN) {
+            return Ok(Url::parse(&format!(
+                "{ANDROID_AARCH64_URL_PREFIX}/{artifact}"
+            ))?);
+        } else {
+            return Err(SolcVmError::UnsupportedVersion(
+                version.to_string(),
+                platform.to_string(),
+            ));
         }
     }
 
